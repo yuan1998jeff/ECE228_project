@@ -70,7 +70,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
     ###################################### Load model ##############################################
 
-    model = models.UnetAdaptiveBins.build(n_bins=args.n_bins, min_val=args.min_depth, max_val=args.max_depth,
+    model = models.UnetAdaptiveBins.build(n_bins=args.n_bins, encoder_name=args.encoder_name, min_val=args.min_depth, max_val=args.max_depth,
                                           norm=args.norm, drop_out=args.drop_out, batch_norm=args.batch_norm)
 
     ################################################################################################
@@ -366,6 +366,7 @@ if __name__ == '__main__':
     ## model tweaking
     parser.add_argument('--drop_out', type=float, default= 0.0, help='if set to nonzero, drop_out layers are added to decoding stage')
     parser.add_argument('--batch_norm', type=int, default= 1, help='if set to True, BN are included into decoding stage, else excluded')
+    parser.add_argument('--encoder_name', type=str, default= 'tf_efficientnet_b5_ap', help='The name of the model encoder')
 
     if sys.argv.__len__() == 2:
         arg_filename_with_prefix = '@' + sys.argv[1]

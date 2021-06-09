@@ -8,10 +8,10 @@ from .miniViT import mViT
 class UpSampleBN(nn.Module):
     def __init__(self, skip_input, output_features, drop_out, batch_norm):
         super(UpSampleBN, self).__init__()
+        self.skip_input = skip_input
         
         if drop_out == 0.0:
             print('\nNO dropout layers--------------------------------------')
-#             print('batch_norm is: ', str(batch_norm))
             if batch_norm == True:
                 print('Having batch_norm layers-------------------')
                 self._net = nn.Sequential(nn.Conv2d(skip_input, output_features, kernel_size=3, stride=1, padding=1),
@@ -28,7 +28,6 @@ class UpSampleBN(nn.Module):
                                       nn.LeakyReLU())
         else:
             print('\nHaving dropout layers--------------------------------------')
-#             print('batch_norm is: ', str(batch_norm))
             print('Dropout rate is:', drop_out)
             if batch_norm == True:
                 print('Having batch_norm layers-------------------')
@@ -50,20 +49,27 @@ class UpSampleBN(nn.Module):
     def forward(self, x, concat_with):
         up_x = F.interpolate(x, size=[concat_with.size(2), concat_with.size(3)], mode='bilinear', align_corners=True)
         f = torch.cat([up_x, concat_with], dim=1)
+#         print('skip_input dim is:', self.skip_input)
+#         print('size is:',f.size(),'================================================')
         return self._net(f)
 
 
 class DecoderBN(nn.Module):
-    def __init__(self, num_features=2048, num_classes=1, bottleneck_features=2048, drop_out = 0.0, batch_norm = True):
+#     def __init__(self, num_features=2048, num_classes=1, bottleneck_features=2048, drop_out = 0.0, batch_norm = True):
+    def __init__(self, num_features=2304, num_classes=1, bottleneck_features=2304, drop_out = 0.0, batch_norm = True):
         super(DecoderBN, self).__init__()
         features = int(num_features)
 
         self.conv2 = nn.Conv2d(bottleneck_features, features, kernel_size=1, stride=1, padding=1)
 
-        self.up1 = UpSampleBN(skip_input=features // 1 + 112 + 64, output_features=features // 2, drop_out = drop_out, batch_norm = batch_norm)
-        self.up2 = UpSampleBN(skip_input=features // 2 + 40 + 24, output_features=features // 4, drop_out = drop_out, batch_norm = batch_norm)
-        self.up3 = UpSampleBN(skip_input=features // 4 + 24 + 16, output_features=features // 8, drop_out = drop_out, batch_norm = batch_norm)
-        self.up4 = UpSampleBN(skip_input=features // 8 + 16 + 8, output_features=features // 16, drop_out = drop_out, batch_norm = batch_norm)
+#         self.up1 = UpSampleBN(skip_input=features // 1 + 112 + 64, output_features=features // 2, drop_out = drop_out, batch_norm = batch_norm)
+#         self.up2 = UpSampleBN(skip_input=features // 2 + 40 + 24, output_features=features // 4, drop_out = drop_out, batch_norm = batch_norm)
+#         self.up3 = UpSampleBN(skip_input=features // 4 + 24 + 16, output_features=features // 8, drop_out = drop_out, batch_norm = batch_norm)
+#         self.up4 = UpSampleBN(skip_input=features // 8 + 16 + 8, output_features=features // 16, drop_out = drop_out, batch_norm = batch_norm)
+        self.up1 = UpSampleBN(skip_input=2504, output_features=features // 2, drop_out = drop_out, batch_norm = batch_norm)
+        self.up2 = UpSampleBN(skip_input=1224, output_features=features // 4, drop_out = drop_out, batch_norm = batch_norm)
+        self.up3 = UpSampleBN(skip_input=616, output_features=features // 8, drop_out = drop_out, batch_norm = batch_norm)
+        self.up4 = UpSampleBN(skip_input=320, output_features=features // 16, drop_out = drop_out, batch_norm = batch_norm)
 
         #         self.up5 = UpSample(skip_input=features // 16 + 3, output_features=features//16)
         self.conv3 = nn.Conv2d(features // 16, num_classes, kernel_size=3, stride=1, padding=1)
@@ -150,10 +156,12 @@ class UnetAdaptiveBins(nn.Module):
             yield from m.parameters()
 
     @classmethod
-    def build(cls, n_bins, **kwargs):
-        basemodel_name = 'tf_efficientnet_b5_ap'
+    def build(cls, n_bins, encoder_name='tf_efficientnet_b5_ap', **kwargs):
+        
+#         basemodel_name = 'tf_efficientnet_b5_ap'
+        basemodel_name = encoder_name
 
-        print('Loading base model ()...'.format(basemodel_name), end='')
+        print('Loading base model ('+basemodel_name+')')
         basemodel = torch.hub.load('rwightman/gen-efficientnet-pytorch', basemodel_name, pretrained=True)
         print('Done.')
 

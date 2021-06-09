@@ -1,4 +1,4 @@
---bs 2
+--bs 3
 --gpu 1
 --dataset nyu
 --lr 0.000357
@@ -7,7 +7,7 @@
 --final_div_factor 100
 --epochs 150
 --workers 11
---name UnetAdaptiveBins
+--name UnetAdaptiveBins_baseline_tf_efficientnet_b6_ap
 --n_bins 256
 --norm linear
 --w_chamfer 0.1
@@ -28,3 +28,6 @@
 --min_depth_eval 1e-3
 --max_depth_eval 10
 --eigen_crop
+--drop_out 0.0
+--batch_norm 1
+--encoder_name tf_efficientnet_b6_ap
